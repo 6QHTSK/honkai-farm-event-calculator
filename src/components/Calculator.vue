@@ -58,7 +58,7 @@ const initialization = () => {
           situation[key] = {
             p: "",
             cnt: 0,
-            viewLevel1: level4.toString(),
+            viewLevel1: level1.toString(),
             level1: level1,
             level2: level2,
             level3: level3,
