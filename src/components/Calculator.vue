@@ -118,10 +118,10 @@ const calculate = () => {
   calculating.value = true
   new Promise(resolve => {
     setTimeout(() => {
-      resolve()
+      resolve(null)
     }, 50)
   }).then(()=>{
-    new Promise((resolve, reject) => {
+    new Promise((resolve) => {
       initialization()
       for(let i=0; i<config.playCnt; i++){
         playOnce()
@@ -144,7 +144,7 @@ const calculate = () => {
       }
       console.log("Finished")
       resolve(null)
-    }).then((value) => {
+    }).then(() => {
       calculating.value = false
       showResult.value = true
       ElMessage({
