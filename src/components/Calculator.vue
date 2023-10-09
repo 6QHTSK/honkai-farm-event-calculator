@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {reactive, ref} from "vue";
+import {ElMessage} from "element-plus";
 
 const calcVariable = reactive({
   money : 0,
@@ -14,6 +15,7 @@ let gemJson = "";
 const craft_need = [3,3,2,2]
 const craft_p = [0.5,0.4,0.3,0.25]
 let successCnt = [0, 0, 0, 0];
+let calculating = ref<boolean>(false);
 let showResult = ref<boolean>(false);
 let successRate = reactive([0,0,0,0]);
 let config = {
@@ -113,27 +115,51 @@ const playOnce = () => {
 
 const calculate = () => {
   showResult.value = false
-  initialization()
-  for(let i=0; i<config.playCnt; i++){
-    playOnce()
-  }
-  // 后处理
-  for(let i=0;i<4;i++){
-    successRate[i] = successCnt[i] / config.playCnt * 100;
-  }
-  for(let i=0;i<situation.length;i++){
-    situation[i].p = (situation[i].cnt / config.playCnt * 100).toFixed(2) + "%"
-  }
-  situation.sort((a,b)=>{
-    return -(a.cnt - b.cnt)
+  calculating.value = true
+  new Promise(resolve => {
+    setTimeout(() => {
+      resolve()
+    }, 50)
+  }).then(()=>{
+    new Promise((resolve, reject) => {
+      initialization()
+      for(let i=0; i<config.playCnt; i++){
+        playOnce()
+      }
+      // 后处理
+      for(let i=0;i<4;i++){
+        successRate[i] = successCnt[i] / config.playCnt * 100;
+      }
+      for(let i=0;i<situation.length;i++){
+        situation[i].p = (situation[i].cnt / config.playCnt * 100).toFixed(2) + "%"
+      }
+      situation.sort((a,b)=>{
+        return -(a.cnt - b.cnt)
+      })
+      for(let i=0;i<situation.length;i++){
+        if(situation[i].cnt === 0){
+          situation = situation.slice(0,i)
+          break
+        }
+      }
+      console.log("Finished")
+      resolve(null)
+    }).then((value) => {
+      calculating.value = false
+      showResult.value = true
+      ElMessage({
+        message: "计算完成",
+        type: "success"
+      })
+    }).catch((error) => {
+      calculating.value = false
+      showResult.value = false
+      ElMessage({
+        message: "出现错误，请反馈：" + error,
+        type: "error"
+      })
+    })
   })
-  for(let i=0;i<situation.length;i++){
-    if(situation[i].cnt === 0){
-      situation = situation.slice(0,i)
-      break
-    }
-  }
-  showResult.value = true
 }
 
 const showPossibility = (index :number) => {
@@ -207,7 +233,7 @@ const arraySpanMethod = ({
     </el-form-item>
   </el-form>
 
-  <el-button type="primary" style="width: 100%" @click="calculate"> 计算 </el-button>
+  <el-button type="primary" style="width: 100%" @click="calculate" :loading="calculating"> 计算 </el-button>
 
   <el-divider v-if="showResult">解锁图鉴概率</el-divider>
 
